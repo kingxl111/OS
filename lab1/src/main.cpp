@@ -1,7 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include "funcs.h"
 
 #define MAX_LINE_LENGTH 1000
@@ -20,17 +19,20 @@ int main() {
     write(STDOUT_FILENO, "Enter input string: ", 21);
     read(STDIN_FILENO, str_in, MAX_LINE_LENGTH);
 
-    pid_t pid1 = create_ps(); //Создаем первого ребенка 
+    pid_t pid1 = create_ps(); //Creating first child 
     if (pid1 == 0) { //child ps
 
         close(pipe1_fd[1]);
         close(btw_childs_pipe_fd[0]);
 
-        if (dup2(pipe1_fd[0], STDIN_FILENO) == -1) {
+        //set pipe1_fd[0] as stdin
+        if (dup2(pipe1_fd[0], STDIN_FILENO) == -1) { 
             perror("dup2 error");
             exit(-1);
         }
-        if (dup2(btw_childs_pipe_fd[1], STDOUT_FILENO) == -1) {
+
+        //set btw_childs_pipe_fd[1] as stdout
+        if (dup2(btw_childs_pipe_fd[1], STDOUT_FILENO) == -1) { 
             perror("dup2 error");
             exit(-1);
         }
@@ -41,12 +43,14 @@ int main() {
         }
         
     } else { // parent ps
+
         close(pipe1_fd[0]);
         write(pipe1_fd[1], str_in, MAX_LINE_LENGTH);
         close(pipe1_fd[1]);
         
         //Creating new child
         pid_t pid2 = create_ps();
+        
         if (pid2 == 0) { //child ps
             close(btw_childs_pipe_fd[1]);
 
