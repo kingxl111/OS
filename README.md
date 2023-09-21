@@ -12,8 +12,14 @@
 *Child1 переводит строки в нижний регистр. Child2 превращает все пробельные
 символы в символ «_».*
 
+# Ссылка на отчет
+- `https://docs.google.com/document/d/1q9i8OcBKK-dgU2VmLlUcVUArbyOXdg4hSy8EfQQMOqI/edit?usp=sharing`
+
 ## Запуск: 
 
+- `cd lab1`
+- `mkdir build`
+- `cd build`
 - `cmake ../ .` из папки lab1/build
 - `make` там же
 - Запускаем основной `./main` 
