@@ -1,6 +1,8 @@
 #include <iostream>
 #include <pthread.h>
+#include <unistd.h>
 #include <time.h>
+#include <sys/wait.h>
 
 using namespace std;
 
@@ -58,10 +60,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    int k;
-    cout << "Input the K number: ";
-    cin >> k;
-
     int n, m;
     cout << "Input the matrix size" << endl << "n: ";
     cin >> n;
@@ -86,69 +84,160 @@ int main(int argc, char* argv[]) {
         result[i] = (double*) malloc(m * sizeof(double));
     }
 
-    double** filter1 = (double**) malloc(FILTER_MATRIX_SIZE * sizeof(double*));
-    for(int i = 0; i < FILTER_MATRIX_SIZE; ++i) {
-        filter1[i] = (double*) malloc(FILTER_MATRIX_SIZE * sizeof(double));
-    }
-
-    for(int i = 0; i < FILTER_MATRIX_SIZE; ++i) {
-        for(int j = 0; j < FILTER_MATRIX_SIZE; ++j) {
-            filter1[i][j] = 1;
-        }
-    }
-
     const int thread_count = stoi(argv[1]);
 
+    // data for threads 
     pthread_data pdata[thread_count];
     for(int i = 0; i < thread_count; ++i) {
         pdata[i].n = n;
         pdata[i].m = m;
-        pdata[i].filter = filter1;
         pdata[i].result = result;
         pdata[i].user_matrix = user_matrix;
     }
+
+    pid_t pid = fork();
+    if(pid == -1) {
+        exit(0);
+    }
     
-    pthread_t tid[thread_count];
+    if(pid > 0) {
 
-    int i_start = 0;
-    int i_finish = (i_start + n / thread_count - 1) > 0 ? i_start + n / thread_count - 1 : 0;
-    int j_start = 0;
-    int j_finish = m - 1;
-    for(int i = 0; i < thread_count; ++i) {
-        pdata[i].i_start = i_start;
-        pdata[i].i_finish = i_finish;
-        pdata[i].j_start = j_start;
-        pdata[i].j_finish = j_finish;
-        // cout << "i_start: " << i_start << ", i_finish: " << i_finish << ", j_start: " << j_start << ", j_finish: " << j_finish << endl;
-        i_start = (i_finish + 1);
-        i_finish = (i_start + n / thread_count);
-        if(i_start >= n) {
-            i_start = n - 1;
+        // filter1 initialization
+        double** filter1 = (double**) malloc(FILTER_MATRIX_SIZE * sizeof(double*));
+        for(int i = 0; i < FILTER_MATRIX_SIZE; ++i) {
+            filter1[i] = (double*) malloc(FILTER_MATRIX_SIZE * sizeof(double));
         }
-        if(i_finish >= n) {
-            i_finish = n - 1;
+        for(int i = 0; i < FILTER_MATRIX_SIZE; ++i) {
+            for(int j = 0; j < FILTER_MATRIX_SIZE; ++j) {
+                filter1[i][j] = 1;
+            }
         }
-        
-        if(pthread_create(&tid[i], NULL, convolution, &pdata[i]) != 0) {
-            return 1;
+
+        for(int i = 0; i < thread_count; ++i) {
+            pdata[i].filter = filter1;
         }
+        // threads array creating
+        pthread_t tid[thread_count];
+
+        // division task by threads
+        int i_start = 0;
+        int i_finish = (i_start + n / thread_count - 1) > 0 ? i_start + n / thread_count - 1 : 0;
+        int j_start = 0;
+        int j_finish = m - 1;
+        for(int i = 0; i < thread_count; ++i) {
+            pdata[i].i_start = i_start;
+            pdata[i].i_finish = i_finish;
+            pdata[i].j_start = j_start;
+            pdata[i].j_finish = j_finish;
+
+            i_start = (i_finish + 1);
+            i_finish = (i_start + n / thread_count);
+            if(i_start >= n) {
+                i_start = n - 1;
+            }
+            if(i_finish >= n) {
+                i_finish = n - 1;
+            }
+            
+            if(pthread_create(&tid[i], NULL, convolution, &pdata[i]) != 0) {
+                return 1;
+            }
+        }
+        for(int i = 0; i < thread_count; ++i) {
+            if(pthread_join(tid[i], NULL) != 0) {
+                return 1;
+            }
+        }
+            
+        wait(nullptr);
+        for (int i = 0; i < n; ++i) {
+            for(int j = 0; j < m; ++j) {
+                cout << result[i][j] << " ";
+            } cout << endl;
+        }
+
+        for(int i = 0; i < n; ++i) {
+            free(user_matrix[i]);
+            free(result[i]);
+        }
+        free(user_matrix);
+        free(result);
+
+        for(int i = 0; i < FILTER_MATRIX_SIZE; ++i) {
+            free(filter1[i]);
+        }
+        free(filter1);
+        // cout << "Total time: "<< (double)(clock() - start ) / CLOCKS_PER_SEC << " seconds" << endl;
+
     }
-    for(int i = 0; i < thread_count; ++i) {
-        if(pthread_join(tid[i], NULL) != 0) {
-            return 1;
+    else {
+        // filter2 initialization
+        double** filter2 = (double**) malloc(FILTER_MATRIX_SIZE * sizeof(double*));
+        for(int i = 0; i < FILTER_MATRIX_SIZE; ++i) {
+            filter2[i] = (double*) malloc(FILTER_MATRIX_SIZE * sizeof(double));
         }
+        for(int i = 0; i < FILTER_MATRIX_SIZE; ++i) {
+            for(int j = 0; j < FILTER_MATRIX_SIZE; ++j) {
+                filter2[i][j] = 10;
+            }
+        }
+
+        // threads array creating
+        pthread_t tid[thread_count];
+
+        for(int i = 0; i < thread_count; ++i) {
+            pdata[i].filter = filter2;
+        }
+
+        // division task by threads
+        int i_start = 0;
+        int i_finish = (i_start + n / thread_count - 1) > 0 ? i_start + n / thread_count - 1 : 0;
+        int j_start = 0;
+        int j_finish = m - 1;
+        for(int i = 0; i < thread_count; ++i) {
+            pdata[i].i_start = i_start;
+            pdata[i].i_finish = i_finish;
+            pdata[i].j_start = j_start;
+            pdata[i].j_finish = j_finish;
+
+            i_start = (i_finish + 1);
+            i_finish = (i_start + n / thread_count);
+            if(i_start >= n) {
+                i_start = n - 1;
+            }
+            if(i_finish >= n) {
+                i_finish = n - 1;
+            }
+            
+            if(pthread_create(&tid[i], NULL, convolution, &pdata[i]) != 0) {
+                return 1;
+            }
+        }
+        for(int i = 0; i < thread_count; ++i) {
+            if(pthread_join(tid[i], NULL) != 0) {
+                return 1;
+            }
+        }
+
+        for (int i = 0; i < n; ++i) {
+            for(int j = 0; j < m; ++j) {
+                cout << result[i][j] << " ";
+            } cout << endl;
+        }
+
+        for(int i = 0; i < n; ++i) {
+            free(user_matrix[i]);
+            free(result[i]);
+        }
+
+        for(int i = 0; i < FILTER_MATRIX_SIZE; ++i) {
+            free(filter2[i]);
+        }
+
+        free(user_matrix);
+        free(result);
+        free(filter2);
+
     }
-
-    for (int i = 0; i < n; ++i) {
-        for(int j = 0; j < m; ++j) {
-            cout << result[i][j] << " ";
-        } cout << endl;
-    }
-
-    free(user_matrix);
-    free(filter1);
-    free(result);
-
-    cout << "Total time: "<< (double)(clock() - start ) / CLOCKS_PER_SEC << " seconds" << endl;
     return 0;
 }
