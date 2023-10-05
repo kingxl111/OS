@@ -1,12 +1,11 @@
 #include <iostream>
 #include <pthread.h>
 #include <unistd.h>
-#include <time.h>
 #include <sys/wait.h>
 
 using namespace std;
 
-#define FILTER_MATRIX_SIZE 3
+#define FILTER_MATRIX_SIZE 50
 
 struct pthread_data {
     int n;
@@ -27,7 +26,6 @@ void* convolution(void* data){
     if(pdata->n == 0) {
         return nullptr;
     }
-    // cout << "i_start: " << pdata->i_start << ", i_finish: " << pdata->i_finish << ", j_start: " << pdata->j_start << ", j_finish: " << pdata->j_finish << endl;
 
     for(int i = pdata->i_start; i <= pdata->i_finish; ++i) {    
         for(int j = pdata->j_start; j <= pdata->j_finish; ++j) {    
@@ -45,10 +43,9 @@ void* convolution(void* data){
                 ++filter_x;
             }
             pdata->result[i][j] = result;
-            // cout << "result: " <<  pdata->result[i][j] << ", i = " << i << ", j = " << j << endl;
         }
     }
-    // pthread_exit(0);
+    pthread_exit(0);
     return nullptr;
 }
 
@@ -77,7 +74,6 @@ int main(int argc, char* argv[]) {
         }
     }
     cout << endl;
-    clock_t start = clock();
 
     double** result = (double**) malloc(n * sizeof(double*));
     for(int i = 0; i < n; ++i) {
@@ -167,7 +163,6 @@ int main(int argc, char* argv[]) {
             free(filter1[i]);
         }
         free(filter1);
-        // cout << "Total time: "<< (double)(clock() - start ) / CLOCKS_PER_SEC << " seconds" << endl;
 
     }
     else {
