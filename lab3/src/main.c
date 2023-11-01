@@ -16,6 +16,8 @@ void spaces_replace(char s[], int len); // for child2
 
 int main() {
 
+    printf("Enter the input line:\n");
+
     char input_line[MAX_LINE_LENGTH];
     int line_size = getln(input_line);
 
@@ -56,6 +58,7 @@ int main() {
         }
         else {
             wait(NULL);
+            printf("Result line:\n");
             for(int i = 0; i < line_size; ++i) {
                 printf("%c", shared_line[i]);
             } printf("\n");

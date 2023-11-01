@@ -5,7 +5,7 @@
 
 using namespace std;
 
-#define FILTER_MATRIX_SIZE 50
+#define FILTER_MATRIX_SIZE 3
 
 struct pthread_data {
     int n;
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
             for(int j = 0; j < m; ++j) {
                 cout << result[i][j] << " ";
             } cout << endl;
-        }
+        } cout << endl;
 
         for(int i = 0; i < n; ++i) {
             free(user_matrix[i]);
