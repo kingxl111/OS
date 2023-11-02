@@ -15,6 +15,9 @@
 
 ## Запуск: 
 
-- `cd lab3/src/`
-- `gcc main.c -o lab3_exe`
-- Запускаем `./lab3_exe`
+- `cd lab3`
+- `mkdir build`
+- `cd build`
+- `cmake ../ .`
+- `make`
+- Запускаем `./main`
