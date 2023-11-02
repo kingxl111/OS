@@ -5,13 +5,15 @@
 программа (основной процесс) должен создать для решение задачи один или несколько
 дочерних процессов. Взаимодействие между процессами осуществляется через memory mapping.
 
+![Схема](Схема)
+
 # Вариант 13
 
 *Child1 переводит строки в нижний регистр. Child2 превращает все пробельные
 символы в символ «_».*
 
 # Ссылка на отчет
-- `https://docs.google.com/document/d/1g3CfGEfX65Wij09C8vGEzcESkK9fhC0xsKeo2LROLz0/edit?usp=sharing`
+- [Отчёт](https://docs.google.com/document/d/1g3CfGEfX65Wij09C8vGEzcESkK9fhC0xsKeo2LROLz0/edit?usp=sharing)
 
 ## Запуск: 
 
