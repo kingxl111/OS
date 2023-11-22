@@ -32,11 +32,6 @@ int main(int argc, char** argv) {
         perror("shm openning error!");
         exit(-1);
     }
-    
-    if (ftruncate(shared_line_fd, MAX_LINE_LENGTH) == -1 ) {
-        perror("ftruncate error!");
-        exit(-1);
-    }
 
     char* shared_line = static_cast<char*>(mmap(NULL, 
                         MAX_LINE_LENGTH, PROT_READ | PROT_WRITE, MAP_SHARED, 
