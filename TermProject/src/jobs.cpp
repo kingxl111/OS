@@ -30,7 +30,7 @@ void HanoiTowers(int n, char from_rod, char to_rod, char aux_rod) {
         return; 
     } 
     HanoiTowers(n - 1, from_rod, aux_rod, to_rod); 
-    cout << from_rod << " " << to_rod << endl; 
+    cout << "We shift the ring from " << from_rod << " rod to " << to_rod << " rod..." << endl; 
     HanoiTowers(n - 1, aux_rod, to_rod, from_rod); 
 } 
 

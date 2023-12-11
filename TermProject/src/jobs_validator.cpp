@@ -6,7 +6,7 @@ using namespace std;
 
 using graph = vector<vector<int> >;
 
-bool DFS(int u, int p, const graph & g, vector<int> & state, vector<int> & path, vector<int> & cycle) {
+bool DFS_cycle(int u, int p, const graph & g, vector<int> & state, vector<int> & path, vector<int> & cycle) {
     
     if(state[u]==2) {
         return false;
@@ -27,7 +27,7 @@ bool DFS(int u, int p, const graph & g, vector<int> & state, vector<int> & path,
                 reverse(cycle.begin(), cycle.end());
                 return true;
             }
-            if(DFS(v, u, g, state, path, cycle)) {
+            if(DFS_cycle(v, u, g, state, path, cycle)) {
                 return true;
             }
         }
@@ -37,16 +37,34 @@ bool DFS(int u, int p, const graph & g, vector<int> & state, vector<int> & path,
     return false;
 }
 
+vector<int> num;
+vector<int> state;
+void dfs(int u, int p, const graph & g, int &c) {
+    if(state[u])
+    {
+        return;
+    }
+    state[u] = true;
+    num[u] = c;
+    ++c;
+    for(int v : g[u]) {
+        if(v!= p) {
+            dfs(v, u, g, c);
+        }
+    }
+}
+
 bool without_cycles(graph &g) {
     
     vector<int> state(g.size(), 0);
     vector<int> path;
     vector<int> cycle;
-    bool has_loop = DFS(0, -1, g, state, path, cycle);
+    bool has_loop = DFS_cycle(0, -1, g, state, path, cycle);
 
     if(has_loop) {
         return false;
     }
+    cout << "Graph is without cycles" << endl;
     return true;
 }
 
@@ -56,20 +74,41 @@ bool only_connectivity_component(graph& g) {
             return false;
         }
     }
+    cout << "Graph has only connectivity components!" << endl;
     return true;
 }
 
-bool has_start_component(graph &g) {
+vector<int> start_component(graph &g) {
+    int max_vtx = 0;
+    vector<int> ans(0);
+    for (size_t i = 0; i < g.size(); ++i) {
+        for (size_t j = 0; j < g[i].size(); ++j) {
+            max_vtx = max(max_vtx, g[i][j]);
+        }
+    }
 
+    // Graph reverse 
+    graph tmp(max_vtx + 1);
+    for (size_t i = 0; i < g.size(); ++i) {
+        for (size_t j = 0; j < g[i].size(); ++j) {
+            tmp[g[i][j]].push_back(i);
+            // cout << i << " " << g[i][j] << " ";
+        } cout << endl;
+    }
+
+    // Finish components for reversed graph
+    vector<int> fcs = finish_component(tmp);
+    return fcs;
 }
 
 
-bool has_finish_component(graph &g) {
-
+vector<int> finish_component(graph &g) {
+    vector<int> ans;
     for (size_t i = 0; i < g.size(); ++i){
         if(g[i].size() == 0) {
-            return true;
+            ans.push_back(i);
+            // cout << "Finish component: " << i << endl;
         }
     }
-    return false;
+    return ans;
 }

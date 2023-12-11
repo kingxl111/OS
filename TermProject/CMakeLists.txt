@@ -12,7 +12,7 @@ set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 include_directories(${INCLUDE_DIR})
 
-file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false ${SOURCE_DIR}/*.cpp yaml-cpp/src/*.cpp)
+file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false yaml-cpp/src/*.cpp ${SOURCE_DIR}/*.cpp)
 
 add_library(planner_lib ${SOURCES})
 add_executable(planner_exe ${SOURCE_DIR}/main.cpp)
