@@ -5,7 +5,7 @@
 
 // Тип проверки доступности узлов: heartbit time
 
-#include <zmq.hpp>
+#include <zmq.h>
 #include <signal.h>
 #include <iostream>
 #include <set>
@@ -33,11 +33,13 @@ void print_commands() {
 }
 
 int main() {
+
     Tree tree;
     int child_pid = 0;
     int child_id = 0;
     zmq::context_t context(1);
-    zmq::socket_t main_socket(context, ZMQ_REQ);
+    // Сокет для запроса
+    zmq::socket_t main_socket(context, ZMQ_REQ); 
     main_socket.set(zmq::sockopt::sndtimeo, 2000);
     int port = bind_socket(main_socket);
     int input_id;
