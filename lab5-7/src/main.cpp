@@ -5,7 +5,7 @@
 
 // Тип проверки доступности узлов: heartbit time
 
-#include <zmq.h>
+#include <zmq.hpp>
 #include <signal.h>
 #include <iostream>
 #include <set>
