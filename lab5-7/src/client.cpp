@@ -5,19 +5,15 @@
 
 // Тип проверки доступности узлов: heartbit time
 
-#include <zmq.h>
-#include <signal.h>
 #include <iostream>
-#include <set>
+#include <limits>
+#include <sys/time.h>
 #include <string>
+#include <unistd.h>
+#include <zmq.hpp>
 #include <map>
-#include <vector>
-#include <cstring>
-#include "server.hpp"
-// #include "server_topology.hpp"
-
-#define MAX_CMD_SIZE 100
-#define MAX_MSG_SIZE 1000
+#include "tree.hpp"
+#include "calc_node.hpp"
 
 using namespace std;
 
@@ -36,103 +32,124 @@ void print_commands() {
     << "===================================" << endl;
 }
 
-int main(int argc, char** argv) {
+vector<int> treee;
 
-    void* context = zmq_ctx_new();
-	cout << "Client starting…" << endl;;
+int main(){
+    string command;
+    CalcNode node(-1, -1, -1);
+    Tree tree;
+    create(&tree, 1);
+    string answer;
+    while(cin >> command) { 
 
-    void* main_socket = zmq_socket(context, ZMQ_REQ);
-	zmq_connect(main_socket, "tcp://localhost:4040");
-
-    int count = 0;
-    char cmd[MAX_CMD_SIZE];
-    char msg[MAX_MSG_SIZE];
-    char reply[MAX_MSG_SIZE];
-    int node_id, parent_id; 
-    char name[MAX_CMD_SIZE];
-    int value;
-    int heartbeat_time;
-    string cur_cmd;
-
-    while(true) {
-        
-        // char msg_text[] = "hello";
-        // zmq_msg_t req;
-        // zmq_msg_init_data(&req, msg_text, sizeof(msg_text), NULL, NULL);
-		// cout << "Client: \n Sending: " << msg_text << " " << count << endl;
-		// zmq_msg_send(&req, main_socket, 0);
-		// zmq_msg_close(&req);
-
-		// zmq_msg_t reply;
-		// zmq_msg_init(&reply);
-		// zmq_msg_recv(&reply, main_socket, 0);
-
-        // char *rp = static_cast<char*>(zmq_msg_data(&reply));
-		// cout << "Client: \n Received: "  << rp << endl; 
-
-		// zmq_msg_close(&reply);
-		// count++;
-        ///////////////////////////////////////////////////////////////////////////////
-
-        cout << "Enter command" << endl;
-        cin >> cmd;
-        
-
-        if (cmd == "print_commands") {
+        if(command == "print_commands") {
             print_commands();
-            continue;
         }
 
-        else if (cmd == "create") {
-            cin >> node_id >> parent_id;
-            cur_cmd = "create " + to_string(node_id) + " " + to_string(parent_id);
-        }
-
-        else if (cmd == "remove") {
-            cin >> node_id;
-            cout << "Warning: all child nodes will be removed\n Continue [Y/N]?: ";
-            string confirm;
-            cin >> confirm;
-            if(confirm == "Y") {
-                cur_cmd = "remove " + to_string(node_id);
+        if(command == "create"){
+            int child;
+            cin >> child;
+            if(exist(&tree, child)){
+                cout << "Error: child already existed!\n";
+            }
+            else{
+                treee.push_back(child);
+                while(true){
+                    int idParent = tree.findId();
+                    if(idParent == node.id){
+                        answer = node.createChild(child);
+                        tree.addElem(child, idParent);
+                        break;
+                    }
+                    else{
+                        string message = "create " + to_string(child);
+                        answer = node.sendStr(message, idParent);
+                        if(answer == "Error: id is not found"){
+                            tree.notAvailable(idParent);
+                        }
+                        else{
+                            tree.addElem(child, idParent);
+                            break;
+                        }
+                    }
+                }
+                cout << answer << endl;
+            }
+        } 
+        else if (command == "heartbit"){
+            int time;
+            cin >> time;
+            for (int i = 0; i <= 2; ++i) {
+                for (int childC = 0; childC < treee.size(); ++childC) {
+                    if(!tree.exist(treee[childC])){
+                        cout << "Error: child is not existed!\n";
+                    }
+                    else if(node.leftId == treee[childC] || node.rightId == treee[childC]){
+                        answer = node.Ping(treee[childC]);
+                        cout << "(" << treee[childC] << ") => " << answer << endl;
+                    }
+                    else{
+                        string message = "ping " + to_string(treee[childC]);
+                        answer = node.sendStr(message, treee[childC]);
+                        if(answer == "Error: id is not found"){
+                            answer = "OK: 0";
+                        }
+                        cout << "(" << treee[childC] << ") => " << answer << endl;
+                    }
+                }
+                usleep(time);
+            }
+        } 
+        else if(command == "exec"){
+            string str;
+            int child;
+            cin >> child;
+            getline(cin, str);
+            if(!exist(&tree, child)){
+                cout << "Error: child is not existed!\n";
             }
             else {
-                continue;
-            }
-                
-        }
-
-        else if (cmd == "exec") {
-            cin >> node_id;
-            cin >> name;
-            cur_cmd = "exec " + to_string(node_id) + name;
-            // Сохраняем новое значение
-            if(cin >> value) {
-                cur_cmd = cur_cmd + to_string(value);
+                string message = "exec " + str;
+                answer = node.sendStr(message, child);
+                cout << answer << endl;
             }
         }
-
-        else if (cmd == "heartbeat") {
-            cin >> heartbeat_time;
-            cur_cmd = "heartbeat " + to_string(heartbeat_time);
+        else if(command == "remove"){
+            int child;
+            cin >> child;
+            string message = "remove";
+            if(!exist(&tree, child)){
+                cout << "Error: child is not existed!\n";
+            }
+            else {
+                answer = node.sendStr(message, child);
+                treee.erase(remove(treee.begin(), treee.end(), child), treee.end());
+                if(answer != "Error: id is not found"){
+                    tree.Remove(child);
+                    if(child == node.leftId){
+                        unbind(node.left, node.leftPort);
+                        node.leftId = -2;
+                        answer = "OK";
+                    }
+                    else if(child == node.rightId){
+                        node.rightId = -2;
+                        unbind(node.right, node.rightPort);
+                        answer = "OK";
+                    }
+                    else{
+                        message = "clear " + to_string(child);
+                        answer = node.sendStr(message, stoi(answer));
+                    }
+                    cout << answer << endl;
+                }
+            }
+        } 
+        else if (command == "kill") {
+            node.removeElem();
+            tree.Remove(tree.findId());
+            treee.clear();
+            break;
         }
-
-        else {
-            cout << "Wrong command format! Any requests aborted" << endl;
-            continue;
-        }
-
-        for (size_t i = 0; i < cur_cmd.size(); ++i) {
-            msg[i] = cur_cmd[i];
-        }
-        make_request(main_socket, msg);
-        recieve_request(main_socket, reply);
-        cout << reply << endl;
     }
-
-    // We never get here though.
-	zmq_close(main_socket);
-	zmq_ctx_destroy(context);
-
     return 0;
 }
