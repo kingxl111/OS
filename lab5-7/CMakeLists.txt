@@ -28,7 +28,7 @@ include_directories(${INCLUDE_DIR} PUBLIC ${ZeroMQ_INCLUDE_DIR})
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false ${SOURCE_DIR}/*.cpp)
 
 add_library(lab5-7_lib ${SOURCES})
-add_executable(client_exe ${SOURCE_DIR}/main.cpp ${SOURCE_DIR}/tree.cpp)
+add_executable(client_exe ${SOURCE_DIR}/client.cpp ${SOURCE_DIR}/tree.cpp)
 add_executable(calc_node_exe ${SOURCE_DIR}/calc_node.cpp ${SOURCE_DIR}/tree.cpp)
 
 target_link_libraries(client_exe PUBLIC ${ZeroMQ_LIBRARY} lab5-7_lib)

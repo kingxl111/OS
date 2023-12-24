@@ -13,7 +13,7 @@ const int CONTROL_NODE_PORT = 4040;
 void make_request(zmq::socket_t &socket, const string &msg) {
     zmq::message_t message(msg.size());
     memcpy(message.data(), msg.c_str(), msg.size());
-    socket.send(message);
+    socket.send(message, zmq::send_flags::none);
 }
 
 // Обрабатываем запрос
@@ -21,7 +21,7 @@ string receive_request(zmq::socket_t &socket) {
     zmq::message_t message;
     int chars_read;
     try {
-        chars_read = (int)socket.recv(&message);
+        chars_read = static_cast<int>(socket.recv(&message));
     }
     catch (...) {
         throw -1;

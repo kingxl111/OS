@@ -4,17 +4,20 @@
 using namespace std;
 
 void create(Tree *t, int root_id) {
-    (*t) = static_cast<node*>(malloc(sizeof(node)));
+    (*t) = new node;
     (*t)->child = nullptr;
     (*t)->next_brother = nullptr;
     (*t)->id = root_id;
-    (*t)->ex_ids.insert(root_id);
+    // (*t)->ex_ids.insert(root_id);
+    (*t)->is_avaliable = true;
 }
 
 bool exist(Tree *t, int id) {
     if(t == nullptr) {
         return false;
     }
+    // cout << "I'm alive yet" << endl;
+    
     return (((*t)->ex_ids.find(id)) != (*t)->ex_ids.end());
 }
 
@@ -49,8 +52,7 @@ bool add_node(Tree *t, int id, char *path) {
 }
 
 static void remove_node(Tree t) {
-    if (t == nullptr)
-    {
+    if (t == nullptr) {
         return;
     }
     remove_node(t->child);
@@ -58,31 +60,28 @@ static void remove_node(Tree t) {
     free(t);
 }
 
-int node_pop(Tree *t, char *path) {
+int pop_node(Tree *t, char *path) {
     Tree to_pop = nullptr;
     Tree *prev = nullptr;
     bool is_child = false;   // Является ли удаляемый узел первым ребенком
     bool is_brother = false; // Является ли удаляемый узел чьим-то братом
     if (t == nullptr)
         return -1;
-    while (path[0] != '\0')
-    {
-        if (path[0] == 'c' && t != nullptr)
-        {
+    while (path[0] != '\0') {
+
+        if (path[0] == 'c' && t != nullptr) {
             prev = t;
             t = &((*t)->child);
             is_brother = false;
             is_child = true;
         }
-        else if (path[0] == 'b' && t != nullptr)
-        {
+        else if (path[0] == 'b' && t != nullptr) {
             prev = t;
             t = &((*t)->next_brother);
             is_brother = true;
             is_child = false;
         }
-        if ((*t) == nullptr || (path[0] != 'b' && path[0] != 'c'))
-        {
+        if ((*t) == nullptr || (path[0] != 'b' && path[0] != 'c')) {
             is_brother = false;
             is_child = false;
             return -1; // Обработка случая, когда пользователь ввёл некорректный путь к узлу(или узла по такому пути нет)
@@ -92,12 +91,10 @@ int node_pop(Tree *t, char *path) {
     to_pop = (*t);
     // printf("is_child: %d is_brother: %d\n", is_child, is_brother);
     remove_node(to_pop->child);
-    if (is_brother)
-    {
+    if (is_brother) {
         (*prev)->next_brother = to_pop->next_brother;
     }
-    else if (is_child)
-    {
+    else if (is_child) {
         (*prev)->child = to_pop->next_brother;
     }
     int _id = to_pop->id;
@@ -105,13 +102,46 @@ int node_pop(Tree *t, char *path) {
     return _id;
 }
 
-// int count_degree(Tree t) {
-//     if (t == nullptr) {
-//         return 0;
-//     }
-//     return 1 + count_degree(t->next_brother);
-// }
+static string find_path_intern(node* tnode, int node_id, string cur_path) {
+    if(tnode == nullptr) {
+        return "";
+    }
+    if(tnode->id == node_id) {
+        return cur_path;
+    }
+    find_path_intern(tnode->child, node_id, cur_path + 'c');
+    find_path_intern(tnode->next_brother, node_id, cur_path + 'b');
+}
 
+char* find_path(Tree* t, int node_id) {
+
+    string path = find_path_intern((*t)->child, node_id, "");
+    char* answer = new char[path.size()];
+    for (size_t i = 0; i < path.size(); ++i) {
+        answer[i] = path[i];
+    }
+    
+    return answer;
+}
+
+static void not_avaliable_intern(node* cur_node, int node_id) {
+    if(!cur_node) {
+        return;
+    }
+    if(cur_node->id == node_id) {
+        cur_node->is_avaliable = false;
+        return;
+    }
+    not_avaliable_intern(cur_node->child, node_id);
+    not_avaliable_intern(cur_node->next_brother, node_id);
+}
+
+void not_available(Tree* t, int node_id) {
+    if(t == nullptr) {
+        return;
+    }
+    not_avaliable_intern((*t)->child, node_id);
+}
 
 // static void print_Tree_tab_intern(Tree t, int depth) {
 //     if (t == nullptr) {

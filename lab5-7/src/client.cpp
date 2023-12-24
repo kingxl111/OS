@@ -32,43 +32,47 @@ void print_commands() {
     << "===================================" << endl;
 }
 
-vector<int> treee;
+vector<int> child_id;
 
 int main(){
     string command;
-    CalcNode node(-1, -1, -1);
+    CalcNode node(1, -1, -1);
     Tree tree;
     create(&tree, 1);
+    cout << "tree has been created" << endl;
     string answer;
+    int parent_id;
     while(cin >> command) { 
 
         if(command == "print_commands") {
             print_commands();
+            continue;
         }
 
         if(command == "create"){
             int child;
             cin >> child;
-            if(exist(&tree, child)){
-                cout << "Error: child already existed!\n";
+            if(exist(&tree, child)) {
+                cout << "Error: child already exists!\n";
             }
-            else{
-                treee.push_back(child);
-                while(true){
-                    int idParent = tree.findId();
-                    if(idParent == node.id){
+            else {
+                cin >> parent_id;
+                child_id.push_back(child);
+                while(true) {
+                    if(parent_id == node.id){
+                        cout << "parent_id == node_id" << endl;
                         answer = node.createChild(child);
-                        tree.addElem(child, idParent);
+                        add_node(&tree, child, find_path(&tree, parent_id));
                         break;
                     }
-                    else{
+                    else {
                         string message = "create " + to_string(child);
-                        answer = node.sendStr(message, idParent);
+                        answer = node.sendStr(message, parent_id);
                         if(answer == "Error: id is not found"){
-                            tree.notAvailable(idParent);
+                            not_available(&tree, parent_id);
                         }
-                        else{
-                            tree.addElem(child, idParent);
+                        else {
+                            add_node(&tree, child, find_path(&tree, parent_id));
                             break;
                         }
                     }
@@ -80,21 +84,21 @@ int main(){
             int time;
             cin >> time;
             for (int i = 0; i <= 2; ++i) {
-                for (int childC = 0; childC < treee.size(); ++childC) {
-                    if(!tree.exist(treee[childC])){
-                        cout << "Error: child is not existed!\n";
+                for (int cur_child = 0; cur_child < child_id.size(); ++cur_child) {
+                    if(!exist(&tree, child_id[cur_child])){
+                        cout << "Error: child doesn't exist!" << endl;
                     }
-                    else if(node.leftId == treee[childC] || node.rightId == treee[childC]){
-                        answer = node.Ping(treee[childC]);
-                        cout << "(" << treee[childC] << ") => " << answer << endl;
+                    else if(node.first_child_id == child_id[cur_child] || node.brother_id == child_id[cur_child]){
+                        answer = node.Ping(child_id[cur_child]);
+                        cout << "(" << child_id[cur_child] << ") => " << answer << endl;
                     }
-                    else{
-                        string message = "ping " + to_string(treee[childC]);
-                        answer = node.sendStr(message, treee[childC]);
+                    else {
+                        string message = "ping " + to_string(child_id[cur_child]);
+                        answer = node.sendStr(message, child_id[cur_child]);
                         if(answer == "Error: id is not found"){
                             answer = "OK: 0";
                         }
-                        cout << "(" << treee[childC] << ") => " << answer << endl;
+                        cout << "(" << child_id[cur_child] << ") => " << answer << endl;
                     }
                 }
                 usleep(time);
@@ -106,7 +110,7 @@ int main(){
             cin >> child;
             getline(cin, str);
             if(!exist(&tree, child)){
-                cout << "Error: child is not existed!\n";
+                cout << "Error: child doesn't exist!" << endl;
             }
             else {
                 string message = "exec " + str;
@@ -119,21 +123,21 @@ int main(){
             cin >> child;
             string message = "remove";
             if(!exist(&tree, child)){
-                cout << "Error: child is not existed!\n";
+                cout << "Error: child doesn't exist!" << endl;
             }
             else {
                 answer = node.sendStr(message, child);
-                treee.erase(remove(treee.begin(), treee.end(), child), treee.end());
+                child_id.erase(remove(child_id.begin(), child_id.end(), child), child_id.end());
                 if(answer != "Error: id is not found"){
-                    tree.Remove(child);
-                    if(child == node.leftId){
-                        unbind(node.left, node.leftPort);
-                        node.leftId = -2;
+                    pop_node(&tree, find_path(&tree, child));
+                    if(child == node.first_child_id){
+                        unbind(node.first_child, node.first_child_port);
+                        node.first_child_id = -2;
                         answer = "OK";
                     }
-                    else if(child == node.rightId){
-                        node.rightId = -2;
-                        unbind(node.right, node.rightPort);
+                    else if(child == node.brother_id){
+                        node.brother_id = -2;
+                        unbind(node.brother, node.brother_port);
                         answer = "OK";
                     }
                     else{
@@ -146,9 +150,18 @@ int main(){
         } 
         else if (command == "kill") {
             node.removeElem();
-            tree.Remove(tree.findId());
-            treee.clear();
+            pop_node(&tree, "");
+            child_id.clear();
             break;
+        }
+
+        else if (command == "exit") {
+            exit(0);
+            cout << "See u" << endl;
+        }
+
+        else {
+            cout << "Wrong command format!" << endl;
         }
     }
     return 0;

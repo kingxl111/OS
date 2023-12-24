@@ -46,6 +46,7 @@ public:
         }
         int pid = fork();
         if(pid == 0){
+            cout << "Launching new calc node..." << endl;
             execl("./calc_node_exe", "./calc_node_exe", to_string(childId).c_str(), to_string(port).c_str(), to_string(id).c_str(), (char*)NULL);
             cout << "Execl error" << endl;
             exit(1);
@@ -53,12 +54,12 @@ public:
         else {
             string pidChild;
             try {
-                if(isfirst_child){
+                if(isfirst_child) {
                     first_child.setsockopt(ZMQ_SNDTIMEO, 3000);
                     make_request(first_child, "pid");
                     pidChild = receive_request(first_child);
                 }
-                else{
+                else {
                     brother.setsockopt(ZMQ_SNDTIMEO, 3000);
                     make_request(brother, "pid");
                     pidChild = receive_request(brother);
