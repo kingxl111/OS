@@ -2,10 +2,11 @@
 
 #include <iostream>
 #include <vector>
+#include "jobs.hpp"
 
-using graph = std::vector<std::vector<int> >;
+using graph = std::vector<std::vector<IJob*> >;
 
 bool only_connectivity_component(graph& g);
-bool without_cycles(graph &g);
-std::vector<int> start_component(graph &g);
-std::vector<int> finish_component(graph &g);
+bool without_cycles(graph &g, vector<IJob*> Jobs);
+std::vector<IJob*> start_component(graph &g, vector<IJob*> Jobs);
+std::vector<IJob*> finish_component(graph &g, vector<IJob*> Jobs);

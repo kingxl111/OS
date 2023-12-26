@@ -1,22 +1,25 @@
 #include "jobs_validator.hpp"
+#include "jobs.hpp"
 #include <iostream>
 #include <algorithm>
 
 using namespace std;
+using graph = vector<vector<IJob*> >;
 
-using graph = vector<vector<int> >;
-
-bool DFS_cycle(int u, int p, const graph & g, vector<int> & state, vector<int> & path, vector<int> & cycle) {
+bool DFS_cycle(IJob* u, IJob* p, const graph & g, vector<int> & state, vector<IJob*> & path, vector<IJob*> & cycle) {
     
-    if(state[u]==2) {
+    if(u == nullptr || p == nullptr) {
+        return false;
+    }
+    if(state[u->id] == 2) {
         return false;
     }
 
     path.push_back(u);
-    state[u] = 1;
-    for(int v : g[u]) {
+    state[u->id] = 1;
+    for(auto v : g[u->id]) {
         if(p != v) {
-            if(state[v] == 1) {
+            if(state[v->id] == 1) {
                 cycle.push_back(v);
                 int idx = path.size() - 1;
 
@@ -32,38 +35,25 @@ bool DFS_cycle(int u, int p, const graph & g, vector<int> & state, vector<int> &
             }
         }
     }
-    state[u] = 2;
+    state[u->id] = 2;
     path.pop_back();
     return false;
 }
 
-vector<int> num;
-vector<int> state;
-void dfs(int u, int p, const graph & g, int &c) {
-    if(state[u])
-    {
-        return;
-    }
-    state[u] = true;
-    num[u] = c;
-    ++c;
-    for(int v : g[u]) {
-        if(v!= p) {
-            dfs(v, u, g, c);
-        }
-    }
-}
-
-bool without_cycles(graph &g) {
+bool without_cycles(graph &g, vector<IJob*> Jobs) {
     
     vector<int> state(g.size(), 0);
-    vector<int> path;
-    vector<int> cycle;
-    bool has_loop = DFS_cycle(0, -1, g, state, path, cycle);
-
-    if(has_loop) {
-        return false;
+    vector<IJob*> path;
+    vector<IJob*> cycle;
+    IJob* smt = new IJob(-1);
+    for(size_t i = 0; i < g.size(); ++i) {
+        
+        bool has_cycle = DFS_cycle(Jobs[i], smt, g, state, path, cycle);
+        if(has_cycle) {
+            return false;
+        }
     }
+
     cout << "Graph is without cycles" << endl;
     return true;
 }
@@ -78,12 +68,12 @@ bool only_connectivity_component(graph& g) {
     return true;
 }
 
-vector<int> start_component(graph &g) {
+vector<IJob*> start_component(graph &g, vector<IJob*> Jobs) {
     int max_vtx = 0;
-    vector<int> ans(0);
+    vector<IJob*> ans(0);
     for (size_t i = 0; i < g.size(); ++i) {
         for (size_t j = 0; j < g[i].size(); ++j) {
-            max_vtx = max(max_vtx, g[i][j]);
+            max_vtx = max(max_vtx, g[i][j]->id);
         }
     }
 
@@ -91,24 +81,26 @@ vector<int> start_component(graph &g) {
     graph tmp(max_vtx + 1);
     for (size_t i = 0; i < g.size(); ++i) {
         for (size_t j = 0; j < g[i].size(); ++j) {
-            tmp[g[i][j]].push_back(i);
+            tmp[g[i][j]->id].push_back(new IJob(i));
             // cout << i << " " << g[i][j] << " ";
         } cout << endl;
     }
 
     // Finish components for reversed graph
-    vector<int> fcs = finish_component(tmp);
+    vector<IJob*> fcs = finish_component(tmp, Jobs);
     return fcs;
 }
 
 
-vector<int> finish_component(graph &g) {
-    vector<int> ans;
-    for (size_t i = 0; i < g.size(); ++i){
+vector<IJob*> finish_component(graph &g, vector<IJob*> Jobs) {
+    vector<IJob*> ans;
+    for (size_t i = 0; i < g.size(); ++i)  {
+        // cout << "job vtc size: " << g[i].size() << endl;
         if(g[i].size() == 0) {
-            ans.push_back(i);
-            // cout << "Finish component: " << i << endl;
+            ans.push_back(Jobs[i]);
+            cout << "Finish component: " << i << endl;
         }
     }
+
     return ans;
 }
