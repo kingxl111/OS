@@ -1,26 +1,26 @@
 ---
 Jobs:
-    - Name: job_id1
-      Vertices: [job_id4]
+    - Job_id: 1
+      Vertices: [4]
       Job: GCD
-
-    - Name: job_id2
-      Vertices: [job_id4]
+ 
+    - Job_id: 2
+      Vertices: [4]
       Job: FibNumberRemainderCount
 
-    - Name: job_id3
-      Vertices: [job_id5]
+    - Job_id: 3
+      Vertices: [5]
       Job: HanoiTower
 
-    - Name: job_id4
-      Vertices: [job_id6]
+    - Job_id: 4
+      Vertices: [6]
       Job: Sum
 
-    - Name: job_id5
-      Vertices: [job_id6]
+    - Job_id: 5
+      Vertices: [6]
       Job: DumbFib
 
-    - Name: job_id6
+    - Job_id: 6
       Vertices: []
       Job: Void
 ...
