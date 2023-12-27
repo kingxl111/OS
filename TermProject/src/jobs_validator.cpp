@@ -40,17 +40,19 @@ bool DFS_cycle(IJob* u, IJob* p, const graph & g, vector<int> & state, vector<IJ
     return false;
 }
 
-bool without_cycles(graph &g, vector<IJob*> Jobs) {
+bool without_cycles(graph &g, vector<IJob*> Jobs, vector<IJob*> &finish_jobs) {
     
-    vector<int> state(g.size(), 0);
-    vector<IJob*> path;
-    vector<IJob*> cycle;
-    IJob* smt = new IJob(-1);
-    for(size_t i = 0; i < g.size(); ++i) {
-        
-        bool has_cycle = DFS_cycle(Jobs[i], smt, g, state, path, cycle);
-        if(has_cycle) {
-            return false;
+    for (size_t j = 0; j < finish_jobs.size(); ++j) {
+        for(size_t i = 0; i < g.size(); ++i) {
+
+            vector<int> state(g.size(), 0);
+            vector<IJob*> path;
+            vector<IJob*> cycle;
+            
+            bool has_cycle = DFS_cycle(Jobs[i], finish_jobs[j], g, state, path, cycle);
+            if(has_cycle) {
+                return false;
+            }
         }
     }
 
@@ -69,20 +71,12 @@ bool only_connectivity_component(graph& g) {
 }
 
 vector<IJob*> start_component(graph &g, vector<IJob*> Jobs) {
-    int max_vtx = 0;
-    vector<IJob*> ans(0);
-    for (size_t i = 0; i < g.size(); ++i) {
-        for (size_t j = 0; j < g[i].size(); ++j) {
-            max_vtx = max(max_vtx, g[i][j]->id);
-        }
-    }
-
+    
     // Graph reverse 
-    graph tmp(max_vtx + 1);
+    graph tmp(g.size());
     for (size_t i = 0; i < g.size(); ++i) {
         for (size_t j = 0; j < g[i].size(); ++j) {
             tmp[g[i][j]->id].push_back(new IJob(i));
-            // cout << i << " " << g[i][j] << " ";
         } cout << endl;
     }
 
@@ -95,12 +89,9 @@ vector<IJob*> start_component(graph &g, vector<IJob*> Jobs) {
 vector<IJob*> finish_component(graph &g, vector<IJob*> Jobs) {
     vector<IJob*> ans;
     for (size_t i = 0; i < g.size(); ++i)  {
-        // cout << "job vtc size: " << g[i].size() << endl;
         if(g[i].size() == 0) {
             ans.push_back(Jobs[i]);
-            cout << "Finish component: " << i << endl;
         }
     }
-
     return ans;
 }

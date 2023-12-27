@@ -21,6 +21,23 @@ Jobs:
       Job: DumbFib
 
     - Job_id: 6
+      Vertices: [7]
+      Job: SOmanyHorses
+    
+    - Job_id: 7
+      Vertices: [8]
+      Job: Sum
+    
+    - Job_id: 8
       Vertices: []
-      Job: Void
+      Job: HanoiTower
+    
+    - Job_id: 9
+      Vertices: [8]
+      Job: GCD
+    
+    - Job_id: 10
+      Vertices: [8]
+      Job: FibNumberRemainderCount
+
 ...

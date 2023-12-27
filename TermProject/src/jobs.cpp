@@ -45,7 +45,7 @@ ll DumbFib(ll n) {
     return DumbFib(n-1) + DumbFib(n-2);
 }
 
-void Void() {
+void SOmanyHorses() {
     cout << "*VOID*" << endl;
     return;
 }
